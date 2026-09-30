@@ -14,7 +14,7 @@
 | Milestone | Description | Status | Owner |
 |-----------|-------------|--------|-------|
 | M0 | Architecture Ready | IN PROGRESS | All |
-| M1 | Input Ready (stable keypoints) | NOT STARTED | Member 1 |
+| M1 | Input Ready (stable keypoints) | DONE | Member 1 |
 | M2 | ML Ready (trained classifier) | NOT STARTED | Member 2 |
 | M3 | Logic + Speech Ready (sentence + audio) | NOT STARTED | Member 3 |
 | M4 | UI Ready (live interface) | NOT STARTED | Member 4 |
@@ -40,17 +40,17 @@
 
 ---
 
-## M1 — Input Ready (NOT STARTED)
+## M1 — Input Ready (DONE)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Webcam capture module | NOT STARTED | app/capture/camera.py |
-| MediaPipe Hands integration | NOT STARTED | app/keypoints/extractor.py |
-| Landmark preprocessing | NOT STARTED | app/keypoints/preprocessing.py |
-| Rolling sequence buffer | NOT STARTED | |
-| Data collection utility | NOT STARTED | scripts/ |
-| Unit tests | NOT STARTED | tests/ |
-| Contract documentation verified | NOT STARTED | CONTRACTS.md Section 2-3 |
+| Webcam capture module | DONE | app/capture/camera.py with mock & real support |
+| MediaPipe Hands integration | DONE | app/keypoints/extractor.py (21 landmarks x 2 hands) |
+| Landmark preprocessing | DONE | app/keypoints/preprocessing.py (wrist-relative, scale normalized) |
+| Rolling sequence buffer | DONE | app/keypoints/buffer.py ((30, 126) sliding window) |
+| Data collection utility | DONE | scripts/collect_data.py |
+| Unit tests | DONE | tests/test_camera.py, tests/test_keypoints.py (6/6 passing) |
+| Contract documentation verified | DONE | Fully conforms to CONTRACTS.md Contract A & B |
 
 ---
 
@@ -132,4 +132,5 @@
 
 | Date | Update | By |
 |------|--------|----|
+| 2026-09-30 | Member 1 complete: camera, keypoints, preprocessing, sequence buffer, dataset script & 6 unit tests | Member 1 |
 | 2026-09-30 | Phase 0 setup: created CONTRACTS.md, PROJECT_STATUS.md, requirements.txt, folder structure | Phase 0 |
