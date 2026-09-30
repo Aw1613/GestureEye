@@ -1,0 +1,22 @@
+VOCABULARY = [
+    "hello",
+    "thank_you",
+    "yes",
+    "no",
+    "please",
+    "sorry",
+    "help",
+    "water",
+    "food",
+    "bathroom",
+    "good",
+    "bad",
+    "fine",
+    "name",
+    "what",
+    "where",
+    "when",
+    "who",
+    "how",
+    "i_am"
+]

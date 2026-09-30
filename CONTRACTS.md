@@ -20,7 +20,7 @@ LANDMARKS_PER_HAND    = 21       # MediaPipe Hands outputs 21 landmarks
 COORDS_PER_LANDMARK   = 3        # x, y, z per landmark
 NUM_HANDS             = 2        # left + right
 FEATURE_DIM           = 126      # 2 hands * 21 landmarks * 3 coords
-NUM_CLASSES           = 20-30    # exact count set after vocabulary selection
+NUM_CLASSES           = 20       # exact count set after vocabulary selection
 CONFIDENCE_THRESHOLD  = 0.60     # minimum confidence to accept a prediction
 STABILITY_WINDOW      = 5        # consecutive agreeing predictions before accept
 ```
@@ -278,3 +278,4 @@ Consumer: Agent 2 (Inference Wrapper)
 | Date | Contract | Change | Changed By |
 |------|----------|--------|------------|
 | 2026-09-30 | All | Initial contract definitions | Phase 0 setup |
+
