@@ -65,15 +65,32 @@ pip install -r requirements.txt
 pip install pytest pyttsx3
 ```
 
-### 2. Run the Verification Tests
-To run the full test suite for Agent 1, Agent 2, and Agent 3:
+### 2. Launch the Live Application (Agent 4 UI & Integration)
 ```bash
-# Agent 3 Sentence Logic & Speech tests (19 tests)
-python -m pytest tests/test_filter.py tests/test_builder.py tests/test_speech.py tests/test_sentence_speech_integration.py -v
+# Live webcam mode with OpenCV real-time HUD dashboard:
+python scripts/run_app.py
+
+# Presentation / screen-share mode without physical webcam:
+python scripts/run_app.py --mock
+
+# Automated live demo tour with simulation and speech playback:
+python scripts/demo_agent4.py
 ```
 
-### 3. Run Agent 3 Demo
-Demonstrates temporal stability filtering (Contract C -> D), sentence smoothing (Contract E), and non-blocking speech (Contract F):
+### 3. Keyboard Controls During Live Execution
+
+| Key | Action | Description |
+|:---:|:---|:---|
+| **`S`** | **Speak Sentence** | Asynchronously speaks smoothed sentence via TTS in $< 0.001\text{s}$ (non-blocking). |
+| **`C`** | **Clear Buffer** | Wipes the word buffer and resets the smoothed sentence and stability filter. |
+| **`Backspace`** / **`B`** | **Undo Last Word** | Deletes the last accepted word and recalculates sentence grammar. |
+| **`M`** | **Toggle Camera Mode** | Switches dynamically between physical webcam and synthetic mock camera. |
+| **`1` – `5`** | **Quick Signs** | Injects 5 consecutive agreeing frames: `1: hello`, `2: thank_you`, `3: please`, `4: water`, `5: help`. |
+| **`Q`** / **`ESC`** | **Quit** | Cleanly terminates threads, camera capture, and closes the application window. |
+
+### 4. Run the Full Test Suite (39 Tests Across All Agents)
 ```bash
-python scripts/demo_agent3.py
+python -m pytest tests/ -v
 ```
+
+> 📖 *For a complete judge presentation guide, rehearsal script, and panel breakdowns, read [docs/DEMO_INSTRUCTIONS.md](./docs/DEMO_INSTRUCTIONS.md).*
