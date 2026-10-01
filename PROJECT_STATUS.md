@@ -12,14 +12,13 @@
 ## Milestone Tracker
 
 | Milestone | Description | Status | Owner |
-|-----------|-------------|--------|-------|
-| M0 | Architecture Ready | IN PROGRESS | All |
+| M0 | Architecture Ready | DONE | All |
 | M1 | Input Ready (stable keypoints) | DONE | Member 1 |
-| M2 | ML Ready (trained classifier) | DONE | Member 2 |
-| M3 | Logic + Speech Ready (sentence + audio) | DONE | Member 3 |
-| M4 | UI Ready (live interface) | DONE | Member 4 |
-| M5 | Integrated MVP | DONE | All |
-| M6 | Demo Hardening | DONE | All |
+| M2 | ML Ready (classifier code & tests) | DONE (Weights Pending) | Member 2 |
+| M3 | Logic + Speech Ready (sentence + audio) | IN PROGRESS | Member 3 |
+| M4 | UI Ready (live interface) | NOT STARTED | Member 4 |
+| M5 | Integrated MVP | NOT STARTED | All |
+| M6 | Demo Hardening | NOT STARTED | All |
 
 ---
 
@@ -44,13 +43,13 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Webcam capture module | DONE | app/capture/camera.py |
-| MediaPipe Hands integration | DONE | app/keypoints/extractor.py |
-| Landmark preprocessing | DONE | app/keypoints/preprocessing.py |
-| Rolling sequence buffer | DONE | |
-| Data collection utility | DONE | scripts/ |
-| Unit tests | DONE | tests/ |
-| Contract documentation verified | DONE | CONTRACTS.md Section 2-3 |
+| Webcam capture module | DONE | app/capture/camera.py with mock & real support |
+| MediaPipe Hands integration | DONE | app/keypoints/extractor.py (21 landmarks x 2 hands) |
+| Landmark preprocessing | DONE | app/keypoints/preprocessing.py (wrist-relative, scale normalized) |
+| Rolling sequence buffer | DONE | app/keypoints/buffer.py ((30, 126) sliding window) |
+| Data collection utility | DONE | scripts/collect_data.py |
+| Unit tests | DONE | tests/test_camera.py, tests/test_keypoints.py (6/6 passing) |
+| Contract documentation verified | DONE | Fully conforms to CONTRACTS.md Contract A & B |
 
 ---
 
@@ -71,52 +70,52 @@
 
 ---
 
-## M3 — Logic + Speech Ready (DONE)
+## M3 — Logic + Speech Ready (IN PROGRESS)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Prediction filter | DONE | app/sentence/filter.py |
-| Sign segmentation | DONE | app/sentence/segmentation.py |
-| Word buffer | DONE | |
-| Sentence builder | DONE | app/sentence/builder.py |
-| TTS integration | DONE | app/tts/speech.py |
-| Non-blocking speech | DONE | |
-| Unit tests | DONE | tests/ |
+| Prediction filter | NOT STARTED | app/sentence/filter.py |
+| Sign segmentation | NOT STARTED | app/sentence/segmentation.py |
+| Word buffer | NOT STARTED | |
+| Sentence builder | NOT STARTED | app/sentence/builder.py |
+| TTS integration | NOT STARTED | app/tts/speech.py |
+| Non-blocking speech | NOT STARTED | |
+| Unit tests | NOT STARTED | tests/ |
 
 ---
 
-## M4 — UI Ready (DONE)
+## M4 — UI Ready (NOT STARTED)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| UI layout | DONE | app/ui/app.py |
-| Camera feed display | DONE | |
-| Prediction overlay | DONE | |
-| Confidence display | DONE | |
-| Word/sentence display | DONE | |
-| System status indicators | DONE | |
-| Start/stop/reset controls | DONE | |
+| UI layout | NOT STARTED | app/ui/app.py |
+| Camera feed display | NOT STARTED | |
+| Prediction overlay | NOT STARTED | |
+| Confidence display | NOT STARTED | |
+| Word/sentence display | NOT STARTED | |
+| System status indicators | NOT STARTED | |
+| Start/stop/reset controls | NOT STARTED | |
 
 ---
 
-## M5 — Integrated MVP (DONE)
+## M5 — Integrated MVP (NOT STARTED)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| End-to-end pipeline connection | DONE | |
-| Integration tests | DONE | |
-| Performance verification | DONE | |
+| End-to-end pipeline connection | NOT STARTED | |
+| Integration tests | NOT STARTED | |
+| Performance verification | NOT STARTED | |
 
 ---
 
-## M6 — Demo Hardening (DONE)
+## M6 — Demo Hardening (NOT STARTED)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Error handling | DONE | |
-| Demo rehearsal | DONE | |
-| Demo script/instructions | DONE | docs/ |
-| Final bug fixes | DONE | |
+| Error handling | NOT STARTED | |
+| Demo rehearsal | NOT STARTED | |
+| Demo script/instructions | NOT STARTED | docs/ |
+| Final bug fixes | NOT STARTED | |
 
 ---
 
@@ -124,7 +123,7 @@
 
 | Blocker | Affects | Status |
 |---------|---------|--------|
-| Vocabulary not yet selected | M2 (model training) | Waiting for dataset inspection |
+| Real training data collection | Real model accuracy | In progress using scripts/collect_data.py |
 
 ---
 
@@ -132,5 +131,8 @@
 
 | Date | Update | By |
 |------|--------|----|
+| 2026-10-01 | Merged Member 1 and Member 2 codebases into main; verified test suites | All / Team |
+| 2026-10-01 | Member 2 complete: NUM_CLASSES fix, evaluate.py, test_model.py, mock dataset generator | Member 2 |
+| 2026-09-30 | Member 1 complete: camera, keypoints, preprocessing, sequence buffer, dataset script & 6 unit tests | Member 1 |
 | 2026-09-30 | Phase 0 setup: created CONTRACTS.md, PROJECT_STATUS.md, requirements.txt, folder structure | Phase 0 |
 
