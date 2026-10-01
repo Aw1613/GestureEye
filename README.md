@@ -57,5 +57,23 @@ Please read the [COLLABORATION_RULES.md](./COLLABORATION_RULES.md) before pushin
 - **Do not** silently change shared data contracts (e.g., Sequence shape).
 - Always ensure the real-time inference loop stays lightweight.
 
-## 🚀 Getting Started (Coming Soon)
-*Instructions for setting up the environment, installing dependencies via `requirements.txt`, and running the MVP will be added here once the core implementation is merged.*
+## 🚀 Getting Started
+ 
+### 1. Install Dependencies
+```bash
+pip install -r requirements.txt
+pip install pytest pyttsx3
+```
+
+### 2. Run the Verification Tests
+To run the full test suite for Agent 1, Agent 2, and Agent 3:
+```bash
+# Agent 3 Sentence Logic & Speech tests (19 tests)
+python -m pytest tests/test_filter.py tests/test_builder.py tests/test_speech.py tests/test_sentence_speech_integration.py -v
+```
+
+### 3. Run Agent 3 Demo
+Demonstrates temporal stability filtering (Contract C -> D), sentence smoothing (Contract E), and non-blocking speech (Contract F):
+```bash
+python scripts/demo_agent3.py
+```

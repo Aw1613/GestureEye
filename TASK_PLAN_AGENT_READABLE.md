@@ -194,26 +194,27 @@ Member 2 must document the prediction output format so Member 3 can consume it w
 Turn noisy model predictions into stable words and speech.
 
 ## 5.3 Tasks
-1. Define prediction event format.
-2. Implement confidence filtering.
-3. Implement temporal stability check.
-4. Prevent repeated identical predictions.
-5. Implement practical sign-boundary/segmentation heuristic.
-6. Maintain word buffer.
-7. Implement basic sentence smoothing.
-8. Implement sentence finalization.
-9. Integrate TTS.
-10. Ensure TTS does not block live inference.
-11. Add tests for duplicate suppression and sentence building.
+1. [x] Define prediction event format (`CONTRACTS.md` Contract C & D).
+2. [x] Implement confidence filtering (`app/sentence/filter.py` with 0.60 threshold).
+3. [x] Implement temporal stability check (`app/sentence/filter.py` with 5-frame window).
+4. [x] Prevent repeated identical predictions (`app/sentence/filter.py` duplicate suppression).
+5. [x] Implement practical sign-boundary/segmentation heuristic (`app/sentence/segmentation.py`).
+6. [x] Maintain word buffer (`app/sentence/builder.py`).
+7. [x] Implement basic sentence smoothing (`app/sentence/builder.py` Contract E).
+8. [x] Implement sentence finalization (`app/sentence/builder.py` finalize_sentence).
+9. [x] Integrate TTS (`app/tts/speech.py` pyttsx3 engine Contract F).
+10. [x] Ensure TTS does not block live inference (`app/tts/speech.py` worker thread & queue).
+11. [x] Add tests for duplicate suppression and sentence building (`tests/test_filter.py`, `tests/test_builder.py`, `tests/test_speech.py`, `tests/test_sentence_speech_integration.py`).
 
 ## 5.4 Deliverables
-- prediction filter
-- sign-event generator
-- segmentation logic
-- word buffer
-- sentence builder
-- TTS module
-- tests
+- [x] prediction filter (`app/sentence/filter.py`)
+- [x] sign-event generator (`app/sentence/filter.py` Contract D)
+- [x] segmentation logic (`app/sentence/segmentation.py`)
+- [x] word buffer (`app/sentence/builder.py`)
+- [x] sentence builder (`app/sentence/builder.py` Contract E)
+- [x] TTS module (`app/tts/speech.py` Contract F)
+- [x] tests (19/19 passing)
+- [x] demo script (`scripts/demo_agent3.py`)
 
 ## 5.5 Acceptance Criteria
 The subsystem is considered ready when:
