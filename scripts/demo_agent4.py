@@ -59,7 +59,9 @@ def run_demo():
 
     frame_count = 0
     try:
+        target_frame_time = 1.0 / 30.0
         while frame_count < (args.frames if args.headless else 999999):
+            frame_start = time.perf_counter()
             frame_count += 1
 
             # Auto inject signs during demo if requested
@@ -86,14 +88,17 @@ def run_demo():
                 print("\n[Demo Automation] Speaking smoothed sentence via TTS (Contract F)...")
                 app.handle_key(ord('s'))
 
+            elapsed = time.perf_counter() - frame_start
             if not args.headless:
                 import cv2
                 cv2.imshow("SignBridge Live Demo (Agent 4)", canvas)
-                key = cv2.waitKey(30)
+                remaining_ms = max(1, int((target_frame_time - elapsed) * 1000))
+                key = cv2.waitKey(remaining_ms)
                 if not app.handle_key(key):
                     break
             else:
-                time.sleep(0.01)
+                sleep_time = max(0.001, target_frame_time - elapsed)
+                time.sleep(sleep_time)
 
     except KeyboardInterrupt:
         print("\n[Demo] Interrupted by user.")

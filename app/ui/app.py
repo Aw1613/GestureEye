@@ -46,6 +46,7 @@ class SignBridgeApp:
         tts_enabled: bool = True,
         tts_rate: int = 160,
         headless: bool = False,
+        target_fps: int = 30,
     ):
         """Initialize all pipeline subsystems.
 
@@ -58,6 +59,7 @@ class SignBridgeApp:
             tts_enabled: Whether Text-to-Speech audio is enabled.
             tts_rate: Speech rate in words per minute.
             headless: If True, disables cv2.imshow for CI / automated tests.
+            target_fps: Target frame rate for smooth UI pacing (default 30).
         """
         self.mock_camera = mock_camera
         self.model_path = model_path
@@ -65,6 +67,7 @@ class SignBridgeApp:
         self.confidence_threshold = confidence_threshold
         self.stability_window = stability_window
         self.headless = headless
+        self.target_fps = target_fps
 
         # Subsystems
         self.camera: Optional[CameraCapture] = None
@@ -326,9 +329,11 @@ class SignBridgeApp:
         if not self.headless:
             cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
 
+        target_frame_time = 1.0 / max(1, self.target_fps)
         frames_run = 0
         try:
             while self.is_running:
+                frame_start_time = time.perf_counter()
                 canvas, ui_state, should_continue = self.step()
                 if not should_continue:
                     break
@@ -339,12 +344,17 @@ class SignBridgeApp:
 
                 if not self.headless:
                     cv2.imshow(window_name, canvas)
-                    key = cv2.waitKey(1)
+                    elapsed = time.perf_counter() - frame_start_time
+                    remaining_ms = int((target_frame_time - elapsed) * 1000)
+                    wait_ms = max(1, remaining_ms)
+                    key = cv2.waitKey(wait_ms)
                     if not self.handle_key(key):
                         break
                 else:
-                    # In headless mode, small yield sleep
-                    time.sleep(0.01)
+                    # In headless mode, sleep for remaining frame budget
+                    elapsed = time.perf_counter() - frame_start_time
+                    sleep_time = max(0.001, target_frame_time - elapsed)
+                    time.sleep(sleep_time)
 
         finally:
             self.close()

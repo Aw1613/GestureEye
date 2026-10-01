@@ -33,6 +33,16 @@ class TestCameraCapture(unittest.TestCase):
         # Should be released after exiting context
         self.assertFalse(cam.is_opened())
 
+    def test_camera_convenience_methods(self):
+        """Verify start() and get_frame() helper methods."""
+        cam = CameraCapture(width=320, height=240, mock=True)
+        self.assertTrue(cam.start())
+        frame = cam.get_frame()
+        self.assertIsNotNone(frame)
+        self.assertEqual(frame.shape, (240, 320, 3))
+        cam.release()
+        self.assertIsNone(cam.get_frame())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -134,6 +134,7 @@
 
 | Date | Update | By |
 |------|--------|----|
+| 2026-10-01 | Member 4: Resolved webcam video lag/stuttering via threaded background frame grabbing, CAP_DSHOW low-latency backend, and frame-budget pacing (41/41 passing tests) | Member 4 |
 | 2026-10-01 | Member 4 complete: implemented UIOverlayRenderer, SignBridgeApp, run_app launcher, demo_agent4 tour, 13 new unit/integration/E2E tests (39/39 passing across all modules), and DEMO_INSTRUCTIONS.md | Member 4 |
 | 2026-10-01 | Member 3 complete: implemented prediction filter, sign segmentation, sentence builder with smoothing, non-blocking TTS, and 19 unit/integration tests (all passing) | Member 3 |
 | 2026-10-01 | Merged Member 1 and Member 2 codebases into main; verified test suites | All / Team |

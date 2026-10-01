@@ -124,3 +124,10 @@ def test_app_headless_run(headless_app):
     """Verify app.run() executes specified number of frames in headless mode."""
     headless_app.run(max_frames=5)
     assert headless_app.is_running is False
+
+
+def test_app_target_fps_configuration():
+    """Verify target_fps configuration and pacing initialization."""
+    app = SignBridgeApp(mock_camera=True, headless=True, target_fps=60)
+    assert app.target_fps == 60
+    app.close()
