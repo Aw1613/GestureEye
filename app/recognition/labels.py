@@ -20,3 +20,5 @@ VOCABULARY = [
     "how",
     "i_am"
 ]
+
+NUM_CLASSES = len(VOCABULARY)
