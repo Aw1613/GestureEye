@@ -235,18 +235,32 @@ dataset inspection. Once selected, the label list must be recorded here.
 
 ### Format
 
-```
+```python
 VOCABULARY = [
     "hello",
     "thank_you",
+    "yes",
+    "no",
     "please",
-    "water",
+    "sorry",
     "help",
-    ...
+    "water",
+    "food",
+    "bathroom",
+    "good",
+    "bad",
+    "fine",
+    "name",
+    "what",
+    "where",
+    "when",
+    "who",
+    "how",
+    "i_am"
 ]
 ```
 
-Status: NOT YET SELECTED — to be filled by Agent 2 after dataset inspection.
+Status: SELECTED (20 signs defined by Member 2 in app/recognition/labels.py and models/labels.json).
 
 ---
 
@@ -278,4 +292,6 @@ Consumer: Agent 2 (Inference Wrapper)
 | Date | Contract | Change | Changed By |
 |------|----------|--------|------------|
 | 2026-09-30 | All | Initial contract definitions | Phase 0 setup |
+| 2026-10-01 | Contract D, E, F | Validated Contract D (filter), E (builder), and F (TTS) implementations with 19 passing tests | Member 3 |
+
 
