@@ -35,16 +35,24 @@ class HandKeypointExtractor:
             min_detection_confidence: Minimum detection confidence threshold.
             min_tracking_confidence: Minimum tracking confidence threshold.
         """
-        self.mp_hands = mp.solutions.hands
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_drawing_styles = mp.solutions.drawing_styles
+        if hasattr(mp, "solutions") and hasattr(mp.solutions, "hands"):
+            self.mp_hands = mp.solutions.hands
+            self.mp_drawing = mp.solutions.drawing_utils
+            self.mp_drawing_styles = mp.solutions.drawing_styles
 
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=static_image_mode,
-            max_num_hands=max_num_hands,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence,
-        )
+            self.hands = self.mp_hands.Hands(
+                static_image_mode=static_image_mode,
+                max_num_hands=max_num_hands,
+                min_detection_confidence=min_detection_confidence,
+                min_tracking_confidence=min_tracking_confidence,
+            )
+            self._using_solutions = True
+        else:
+            self.mp_hands = None
+            self.mp_drawing = None
+            self.mp_drawing_styles = None
+            self.hands = None
+            self._using_solutions = False
 
     def extract_keypoints(
         self, frame: np.ndarray, draw: bool = False
@@ -61,10 +69,10 @@ class HandKeypointExtractor:
             - info: dict with detection status: {"left_detected": bool, "right_detected": bool, "hands_count": int}
             - annotated_frame: frame with landmarks drawn (or original frame if draw=False)
         """
-        if frame is None or frame.size == 0:
+        if frame is None or frame.size == 0 or self.hands is None:
             empty_vector = np.zeros(FEATURE_DIM, dtype=np.float32)
             info = {"left_detected": False, "right_detected": False, "hands_count": 0}
-            return empty_vector, info, frame
+            return empty_vector, info, frame.copy() if (draw and frame is not None) else frame
 
         annotated_frame = frame.copy() if draw else frame
 

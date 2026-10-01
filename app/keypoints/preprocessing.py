@@ -76,3 +76,25 @@ def assemble_feature_vector(
     # Concatenate Left [0:63] and Right [63:126]
     vector = np.concatenate([norm_left, norm_right], axis=0).astype(np.float32)
     return vector
+
+
+class KeypointPreprocessor:
+    """Class wrapper for landmark preprocessing conforming to Contract A."""
+
+    @staticmethod
+    def normalize_hand(landmarks: np.ndarray) -> np.ndarray:
+        return normalize_hand_landmarks(landmarks)
+
+    @staticmethod
+    def normalize(landmarks: np.ndarray) -> np.ndarray:
+        """Pass through already normalized feature vectors or normalize single hand."""
+        if landmarks is None:
+            return np.zeros(FEATURE_DIM, dtype=np.float32)
+        if landmarks.shape == (FEATURE_DIM,):
+            return landmarks
+        return normalize_hand_landmarks(landmarks)
+
+    @staticmethod
+    def assemble(left: Optional[np.ndarray], right: Optional[np.ndarray]) -> np.ndarray:
+        return assemble_feature_vector(left, right)
+

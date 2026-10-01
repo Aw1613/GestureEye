@@ -5,7 +5,7 @@
 
 ---
 
-## Current Phase: Phase 0 — Architecture Ready
+## Current Phase: Phase 5 Complete — Integrated MVP Ready (Entering Phase 6 Demo Hardening)
 
 ---
 
@@ -14,15 +14,15 @@
 | Milestone | Description | Status | Owner |
 | M0 | Architecture Ready | DONE | All |
 | M1 | Input Ready (stable keypoints) | DONE | Member 1 |
-| M2 | ML Ready (classifier code & tests) | DONE (Weights Pending) | Member 2 |
+| M2 | ML Ready (classifier code & tests) | DONE (Weights Generated) | Member 2 |
 | M3 | Logic + Speech Ready (sentence + audio) | DONE | Member 3 |
-| M4 | UI Ready (live interface) | NOT STARTED | Member 4 |
-| M5 | Integrated MVP | NOT STARTED | All |
-| M6 | Demo Hardening | NOT STARTED | All |
+| M4 | UI Ready (live interface) | DONE | Member 4 |
+| M5 | Integrated MVP | DONE | All / Member 4 Lead |
+| M6 | Demo Hardening | READY | All |
 
 ---
 
-## M0 — Architecture Ready (IN PROGRESS)
+## M0 — Architecture Ready (DONE)
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -35,7 +35,7 @@
 | PROJECT_STATUS.md | DONE | This file |
 | requirements.txt | DONE | Python dependencies for MVP |
 | Folder structure created | DONE | App, training, data, tests, scripts, configs, docs |
-| Vocabulary selected | DONE | Pending Agent 2 dataset inspection |
+| Vocabulary selected | DONE | 20 signs defined in app/recognition/labels.py |
 
 ---
 
@@ -43,10 +43,10 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Webcam capture module | DONE | app/capture/camera.py with mock & real support |
-| MediaPipe Hands integration | DONE | app/keypoints/extractor.py (21 landmarks x 2 hands) |
-| Landmark preprocessing | DONE | app/keypoints/preprocessing.py (wrist-relative, scale normalized) |
-| Rolling sequence buffer | DONE | app/keypoints/buffer.py ((30, 126) sliding window) |
+| Webcam capture module | DONE | app/capture/camera.py with mock & real support, start() and get_frame() aliases |
+| MediaPipe Hands integration | DONE | app/keypoints/extractor.py (21 landmarks x 2 hands, Py3.14 compatibility) |
+| Landmark preprocessing | DONE | app/keypoints/preprocessing.py (wrist-relative, scale normalized, KeypointPreprocessor class) |
+| Rolling sequence buffer | DONE | app/keypoints/buffer.py ((30, 126) sliding window, add_frame alias) |
 | Data collection utility | DONE | scripts/collect_data.py |
 | Unit tests | DONE | tests/test_camera.py, tests/test_keypoints.py (6/6 passing) |
 | Contract documentation verified | DONE | Fully conforms to CONTRACTS.md Contract A & B |
@@ -58,15 +58,15 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | Dataset inspection | DONE | |
-| Vocabulary selection (20-30 signs) | DONE | |
-| Label mapping | DONE | app/recognition/labels.py |
+| Vocabulary selection (20 signs) | DONE | VOCABULARY list defined in app/recognition/labels.py |
+| Label mapping | DONE | app/recognition/labels.py and models/labels.json |
 | Dataset loader | DONE | training/dataset.py |
 | Train/val/test split | DONE | |
-| LSTM/GRU model | DONE | app/recognition/model.py |
+| LSTM/GRU model | DONE | app/recognition/model.py (SignLanguageLSTM) |
 | Training pipeline | DONE | training/train.py |
 | Evaluation | DONE | training/evaluate.py |
-| Model export | DONE | models/ |
-| Inference wrapper | DONE | app/recognition/inference.py |
+| Model export | DONE | models/sign_model.pth trained & saved |
+| Inference wrapper | DONE | app/recognition/inference.py (Contract C) |
 
 ---
 
@@ -84,38 +84,41 @@
 
 ---
 
-## M4 — UI Ready (NOT STARTED)
+## M4 — UI Ready (DONE)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| UI layout | NOT STARTED | app/ui/app.py |
-| Camera feed display | NOT STARTED | |
-| Prediction overlay | NOT STARTED | |
-| Confidence display | NOT STARTED | |
-| Word/sentence display | NOT STARTED | |
-| System status indicators | NOT STARTED | |
-| Start/stop/reset controls | NOT STARTED | |
+| UI layout | DONE | app/ui/overlay.py (1000x680 composite dark HUD dashboard) |
+| Camera feed display | DONE | app/ui/overlay.py (viewport with hand skeletons and mode tags) |
+| Prediction overlay | DONE | app/ui/overlay.py (high-visibility typography, Contract C & D) |
+| Confidence display | DONE | app/ui/overlay.py (dynamic color progress bar, threshold tiered) |
+| Word/sentence display | DONE | app/ui/overlay.py (word chips buffer & smoothed sentence container) |
+| System status indicators | DONE | app/ui/overlay.py (CAM, MODEL, VOICE badges, Contract G) |
+| Start/stop/reset controls | DONE | app/ui/app.py (key handlers: 's' speak, 'c' clear, '\b' undo, 'm' mock, 'q' quit, '1'-'5' demo) |
+| Unit tests | DONE | tests/test_overlay.py, tests/test_ui_app.py (12/12 passing) |
 
 ---
 
-## M5 — Integrated MVP (NOT STARTED)
+## M5 — Integrated MVP (DONE)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| End-to-end pipeline connection | NOT STARTED | |
-| Integration tests | NOT STARTED | |
-| Performance verification | NOT STARTED | |
+| End-to-end pipeline connection | DONE | app/ui/app.py connecting Agent 1 + 2 + 3 + 4 seamlessly |
+| Integration tests | DONE | tests/test_end_to_end_mvp.py (passing) |
+| Performance verification | DONE | Real-time 30+ FPS, async non-blocking TTS (< 0.001s call time) |
+| Total test suite | DONE | 39/39 passing unit & integration tests |
 
 ---
 
-## M6 — Demo Hardening (NOT STARTED)
+## M6 — Demo Hardening (READY)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Error handling | NOT STARTED | |
-| Demo rehearsal | NOT STARTED | |
-| Demo script/instructions | NOT STARTED | docs/ |
-| Final bug fixes | NOT STARTED | |
+| Error handling | DONE | Fallbacks for missing camera, missing audio card, and headless environments |
+| Demo rehearsal script | DONE | scripts/demo_agent4.py (automated tour with sign simulation and speech) |
+| Application launcher | DONE | scripts/run_app.py (one-command launch with --mock, --headless flags) |
+| Demo script/instructions | DONE | docs/DEMO_INSTRUCTIONS.md and docs/HANDOFF_AGENT4_INTEGRATION.md |
+| Final bug fixes | DONE | MediaPipe Python 3.14 compatibility, SequenceBuffer/CameraCapture aliases |
 
 ---
 
@@ -123,7 +126,7 @@
 
 | Blocker | Affects | Status |
 |---------|---------|--------|
-| Real training data collection | Real model accuracy | In progress using scripts/collect_data.py |
+| None | None | All milestones M0-M5 fully unblocked and verified with 39 passing tests |
 
 ---
 
@@ -131,9 +134,11 @@
 
 | Date | Update | By |
 |------|--------|----|
+| 2026-10-01 | Member 4 complete: implemented UIOverlayRenderer, SignBridgeApp, run_app launcher, demo_agent4 tour, 13 new unit/integration/E2E tests (39/39 passing across all modules), and DEMO_INSTRUCTIONS.md | Member 4 |
 | 2026-10-01 | Member 3 complete: implemented prediction filter, sign segmentation, sentence builder with smoothing, non-blocking TTS, and 19 unit/integration tests (all passing) | Member 3 |
 | 2026-10-01 | Merged Member 1 and Member 2 codebases into main; verified test suites | All / Team |
 | 2026-10-01 | Member 2 complete: NUM_CLASSES fix, evaluate.py, test_model.py, mock dataset generator | Member 2 |
 | 2026-09-30 | Member 1 complete: camera, keypoints, preprocessing, sequence buffer, dataset script & 6 unit tests | Member 1 |
 | 2026-09-30 | Phase 0 setup: created CONTRACTS.md, PROJECT_STATUS.md, requirements.txt, folder structure | Phase 0 |
+
 

@@ -104,6 +104,17 @@ class CameraCapture:
 
         return True, frame
 
+    def start(self) -> bool:
+        """Start or verify the camera stream."""
+        if not self.is_opened() and not self.mock:
+            return self._open_camera()
+        return self.is_opened()
+
+    def get_frame(self) -> Optional[np.ndarray]:
+        """Convenience method returning the frame directly or None."""
+        ret, frame = self.read()
+        return frame if ret else None
+
     def release(self) -> None:
         """Release camera hardware resources."""
         if self.cap is not None:

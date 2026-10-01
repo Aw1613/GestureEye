@@ -43,6 +43,10 @@ class SequenceBuffer:
 
         self._buffer.append(feature_vector.astype(np.float32))
 
+    def add_frame(self, feature_vector: np.ndarray) -> None:
+        """Alias for append() to support handoff template syntax."""
+        self.append(feature_vector)
+
     def is_ready(self) -> bool:
         """Return True if the buffer contains a full temporal sequence."""
         return len(self._buffer) == self.sequence_length
