@@ -99,6 +99,8 @@ def collect_data(
             buffer.reset()
             frame_idx = 0
             while frame_idx < seq_length:
+                loop_start = time.time()
+                
                 ret, frame = cam.read()
                 if not ret:
                     continue
@@ -121,6 +123,11 @@ def collect_data(
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     print("User aborted collection.")
                     return
+                    
+                # ENFORCE 30 FPS PACING so it captures exactly 1 second of motion
+                elapsed = time.time() - loop_start
+                if elapsed < (1.0 / 30.0):
+                    time.sleep((1.0 / 30.0) - elapsed)
 
             seq = buffer.get_sequence()
             if seq is not None and seq.shape == (seq_length, FEATURE_DIM):
@@ -147,3 +154,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     collect_data(sign_label=args.sign, num_samples=args.samples, camera_index=args.camera)
+
