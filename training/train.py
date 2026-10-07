@@ -22,7 +22,8 @@ def train_model(data_dir="data/raw", epochs=200, batch_size=32, lr=0.001, save_d
         json.dump(id_to_label, f, indent=4)
         
     print(f"Loading data from {data_dir}...")
-    train_loader = get_dataloader(data_dir, labels_dict, batch_size=batch_size)
+    # Enable Data Augmentation (Jitter) for hackathon robustness
+    train_loader = get_dataloader(data_dir, labels_dict, batch_size=batch_size, apply_jitter=True)
     
     if len(train_loader.dataset) == 0:
         print("No training data found. Exiting training loop.")
