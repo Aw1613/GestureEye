@@ -5,7 +5,7 @@ from app.recognition.model import SignLanguageLSTM
 from app.recognition.labels import VOCABULARY, NUM_CLASSES
 from training.dataset import get_dataloader
 
-def evaluate_model(data_dir="data/processed", model_path="models/sign_model.pth", batch_size=32):
+def evaluate_model(data_dir="data/raw", model_path="models/sign_model.pth", batch_size=32):
     if not os.path.exists(model_path):
         print(f"Error: Model weights not found at {model_path}. Run training first.")
         return
