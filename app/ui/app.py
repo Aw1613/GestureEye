@@ -42,9 +42,9 @@ class SignBridgeApp:
         model_path: str = "models/sign_model.pth",
         labels_path: str = "models/labels.json",
         confidence_threshold: float = 0.60,
-        stability_window: int = 5,
+        stability_window: int = 15,
         tts_enabled: bool = True,
-        tts_rate: int = 160,
+        tts_rate: int = 120,
         headless: bool = False,
         target_fps: int = 30,
     ):
