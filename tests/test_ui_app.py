@@ -8,7 +8,7 @@ from app.ui.app import SignBridgeApp
 @pytest.fixture
 def headless_app():
     """Create a headless SignBridgeApp with mock camera for testing."""
-    app = SignBridgeApp(mock_camera=True, headless=True, tts_enabled=False)
+    app = SignBridgeApp(mock_camera=True, headless=True, tts_enabled=False, stability_window=5)
     yield app
     app.close()
 
