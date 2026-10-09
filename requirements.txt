@@ -24,3 +24,6 @@ pyttsx3>=2.90
 scikit-learn>=1.3.0
 matplotlib>=3.7.0
 tqdm>=4.65.0
+
+# Web Landing Page & Presentation
+streamlit>=1.35.0
