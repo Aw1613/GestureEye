@@ -7,7 +7,7 @@ from app.recognition.model import SignLanguageLSTM
 from app.recognition.labels import VOCABULARY, NUM_CLASSES
 from training.dataset import get_dataloader
 
-def train_model(data_dir="data/processed", epochs=50, batch_size=32, lr=0.001, save_dir="models"):
+def train_model(data_dir="data/raw", epochs=200, batch_size=32, lr=0.001, save_dir="models"):
     # Ensure save directory exists
     os.makedirs(save_dir, exist_ok=True)
     
@@ -22,7 +22,8 @@ def train_model(data_dir="data/processed", epochs=50, batch_size=32, lr=0.001, s
         json.dump(id_to_label, f, indent=4)
         
     print(f"Loading data from {data_dir}...")
-    train_loader = get_dataloader(data_dir, labels_dict, batch_size=batch_size)
+    # Enable Data Augmentation (Jitter) for hackathon robustness
+    train_loader = get_dataloader(data_dir, labels_dict, batch_size=batch_size, apply_jitter=True)
     
     if len(train_loader.dataset) == 0:
         print("No training data found. Exiting training loop.")

@@ -104,10 +104,18 @@ class TextToSpeech:
                 self._is_speaking = True
                 self.spoken_history.append(text)
 
-                if self.enabled and self._is_available and self._engine is not None:
+                if self.enabled and self._is_available:
                     try:
-                        self._engine.say(text)
-                        self._engine.runAndWait()
+                        import pythoncom
+                        import pyttsx3
+                        pythoncom.CoInitialize()
+                        # Re-initialize engine per utterance to prevent Windows COM locking
+                        temp_engine = pyttsx3.init()
+                        temp_engine.setProperty("rate", self.rate)
+                        temp_engine.setProperty("volume", self.volume)
+                        temp_engine.say(text)
+                        temp_engine.runAndWait()
+                        del temp_engine
                     except Exception as e:
                         logger.error(f"TTS playback error: {e}")
                 else:

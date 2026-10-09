@@ -3,7 +3,7 @@
 
 # Computer Vision & MediaPipe (Agent 1)
 opencv-python>=4.8.0
-mediapipe>=0.10.0,<0.10.15
+mediapipe==0.10.14,<0.10.15
 
 # Numerical Computing
 numpy>=1.24.0

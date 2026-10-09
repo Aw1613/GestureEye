@@ -422,7 +422,7 @@ class UIOverlayRenderer:
 
         # Control Key Legend
         shortcuts = (
-            "[S] Speak Sentence  |  [C] Clear Buffer  |  [Backspace] Undo Word  |  "
+            "[S] Speak Sentence  |  [C] Clear Buffer  |  [E] Export  |  [Backspace] Undo Word  |  "
             "[M] Toggle Mock  |  [1-5] Quick Signs  |  [Q] Quit"
         )
         cv2.putText(

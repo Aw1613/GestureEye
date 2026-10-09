@@ -42,9 +42,9 @@ class SignBridgeApp:
         model_path: str = "models/sign_model.pth",
         labels_path: str = "models/labels.json",
         confidence_threshold: float = 0.60,
-        stability_window: int = 5,
+        stability_window: int = 15,
         tts_enabled: bool = True,
-        tts_rate: int = 160,
+        tts_rate: int = 120,
         headless: bool = False,
         target_fps: int = 30,
     ):
@@ -297,6 +297,23 @@ class SignBridgeApp:
             self._init_camera(new_mode)
             self.set_toast("Switched to MOCK Camera" if new_mode else "Switched to LIVE Camera")
 
+        # [E]: Export Transcript (Hackathon Feature)
+        elif key == ord('e'):
+            words = self.sentence_builder.buffer
+            if not words:
+                self.set_toast("Nothing to export!")
+            else:
+                import time, os
+                os.makedirs("exports", exist_ok=True)
+                filename = f"exports/transcript_{int(time.time())}.txt"
+                with open(filename, "w") as f:
+                    f.write("SignBridge Diagnostic Export\n")
+                    f.write("==============================\n")
+                    f.write(f"Timestamp: {time.ctime()}\n")
+                    f.write("Translated Sentence:\n")
+                    f.write(" ".join(words).upper() + "\n")
+                self.set_toast(f"Exported to {filename}")
+
         # [1-5]: Quick sign demo injection
         elif key in self.demo_shortcuts:
             sign_word = self.demo_shortcuts[key]
@@ -387,7 +404,7 @@ def run_app():
     print(f"[Config] Mock Camera: {args.mock}")
     print(f"[Config] Headless: {args.headless}")
     print(f"[Config] TTS Enabled: {not args.no_tts}")
-    print("Controls: [S] Speak | [C] Clear | [Backspace] Undo | [M] Toggle Mock | [1-5] Signs | [Q] Quit")
+    print("Controls: [S] Speak | [C] Clear | [E] Export | [Backspace] Undo | [M] Toggle Mock | [1-5] Signs | [Q] Quit")
     print("------------------------------------------------------------")
 
     app = SignBridgeApp(

@@ -1,13 +1,17 @@
 """MediaPipe Hand Landmark Extraction Module for SignBridge (Agent 1).
 
+Uses the modern MediaPipe Tasks API.
 Extracts 21 3D landmarks per detected hand (up to 2 hands) and returns
 a standardized 126-dimensional normalized feature vector conforming to CONTRACTS.md.
 """
 
+import os
 from typing import Dict, Optional, Tuple, Any
 import cv2
 import numpy as np
 import mediapipe as mp
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 
 from app.keypoints.preprocessing import (
     LANDMARKS_PER_HAND,
@@ -18,8 +22,6 @@ from app.keypoints.preprocessing import (
 
 
 class HandKeypointExtractor:
-    """Wrapper around MediaPipe Hands for extracting normalized keypoint features."""
-
     def __init__(
         self,
         static_image_mode: bool = False,
@@ -27,127 +29,91 @@ class HandKeypointExtractor:
         min_detection_confidence: float = 0.5,
         min_tracking_confidence: float = 0.5,
     ):
-        """Initialize MediaPipe Hands model.
+        model_path = os.path.join(
+            os.path.dirname(__file__), "..", "..", "models", "hand_landmarker.task"
+        )
+        
+        if not os.path.exists(model_path):
+            print(f"Error: Could not find model at {model_path}")
+            self.detector = None
+            return
 
-        Args:
-            static_image_mode: Whether to treat each image independently.
-            max_num_hands: Maximum number of hands to detect (default 2).
-            min_detection_confidence: Minimum detection confidence threshold.
-            min_tracking_confidence: Minimum tracking confidence threshold.
-        """
-        if hasattr(mp, "solutions") and hasattr(mp.solutions, "hands"):
-            self.mp_hands = mp.solutions.hands
-            self.mp_drawing = mp.solutions.drawing_utils
-            self.mp_drawing_styles = mp.solutions.drawing_styles
-
-            self.hands = self.mp_hands.Hands(
-                static_image_mode=static_image_mode,
-                max_num_hands=max_num_hands,
-                min_detection_confidence=min_detection_confidence,
-                min_tracking_confidence=min_tracking_confidence,
-            )
-            self._using_solutions = True
-        else:
-            self.mp_hands = None
-            self.mp_drawing = None
-            self.mp_drawing_styles = None
-            self.hands = None
-            self._using_solutions = False
+        base_options = python.BaseOptions(model_asset_path=model_path)
+        options = vision.HandLandmarkerOptions(
+            base_options=base_options,
+            num_hands=max_num_hands,
+            min_hand_detection_confidence=min_detection_confidence,
+            min_hand_presence_confidence=min_tracking_confidence,
+            min_tracking_confidence=min_tracking_confidence,
+        )
+        self.detector = vision.HandLandmarker.create_from_options(options)
+        
+        # Drawing utilities for visualization
+        self.mp_drawing = mp.solutions.drawing_utils if hasattr(mp, "solutions") else None
+        self.mp_hands = mp.solutions.hands if hasattr(mp, "solutions") else None
 
     def extract_keypoints(
         self, frame: np.ndarray, draw: bool = False
     ) -> Tuple[np.ndarray, Dict[str, Any], np.ndarray]:
-        """Extract hand landmarks from a BGR video frame.
+        
+        if frame is None or frame.size == 0 or self.detector is None:
+            return np.zeros(FEATURE_DIM, dtype=np.float32), {"left_detected": False, "right_detected": False, "hands_count": 0}, frame
 
-        Args:
-            frame: OpenCV BGR image frame (H, W, 3).
-            draw: If True, draws landmarks on a copy of the frame.
-
-        Returns:
-            Tuple of:
-            - feature_vector: np.ndarray of shape (126,), dtype float32
-            - info: dict with detection status: {"left_detected": bool, "right_detected": bool, "hands_count": int}
-            - annotated_frame: frame with landmarks drawn (or original frame if draw=False)
-        """
-        if frame is None or frame.size == 0 or self.hands is None:
-            empty_vector = np.zeros(FEATURE_DIM, dtype=np.float32)
-            info = {"left_detected": False, "right_detected": False, "hands_count": 0}
-            return empty_vector, info, frame.copy() if (draw and frame is not None) else frame
-
-        annotated_frame = frame.copy() if draw else frame
-
-        # MediaPipe expects RGB images
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        rgb_frame.flags.writeable = False
-        results = self.hands.process(rgb_frame)
-        rgb_frame.flags.writeable = True
-
-        left_hand: Optional[np.ndarray] = None
-        right_hand: Optional[np.ndarray] = None
-
-        left_detected = False
-        right_detected = False
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+        
+        detection_result = self.detector.detect(mp_image)
+        annotated_frame = frame.copy() if draw else frame
+        
+        left_hand, right_hand = None, None
+        left_detected, right_detected = False, False
         hands_count = 0
 
-        if results.multi_hand_landmarks and results.multi_handedness:
-            hands_count = len(results.multi_hand_landmarks)
-
-            for hand_landmarks, handedness in zip(
-                results.multi_hand_landmarks, results.multi_handedness
-            ):
-                # Extract classification label: 'Left' or 'Right'
-                label = handedness.classification[0].label
-
-                # Convert landmark list to (21, 3) numpy array [x, y, z]
+        if detection_result.hand_landmarks:
+            hands_count = len(detection_result.hand_landmarks)
+            for idx in range(hands_count):
+                hand_landmarks = detection_result.hand_landmarks[idx]
+                handedness = detection_result.handedness[idx][0].category_name
+                
                 coords = np.array(
-                    [[lm.x, lm.y, lm.z] for lm in hand_landmarks.landmark],
+                    [[lm.x, lm.y, lm.z] for lm in hand_landmarks],
                     dtype=np.float32,
                 )
-
-                if label == "Left" and left_hand is None:
+                
+                if handedness == "Left" and not left_detected:
                     left_hand = coords
                     left_detected = True
-                elif label == "Right" and right_hand is None:
+                elif handedness == "Right" and not right_detected:
                     right_hand = coords
                     right_detected = True
-                elif left_hand is None:
-                    # Fallback if both labeled same
+                elif not left_detected:
                     left_hand = coords
                     left_detected = True
-                elif right_hand is None:
+                elif not right_detected:
                     right_hand = coords
                     right_detected = True
-
-                # Draw landmarks if requested
+                
+                # Manual drawing since new API doesn't have a direct draw method that matches old styles perfectly
                 if draw:
-                    self.mp_drawing.draw_landmarks(
-                        annotated_frame,
-                        hand_landmarks,
-                        self.mp_hands.HAND_CONNECTIONS,
-                        self.mp_drawing_styles.get_default_hand_landmarks_style(),
-                        self.mp_drawing_styles.get_default_hand_connections_style(),
-                    )
+                    for lm in hand_landmarks:
+                        x = int(lm.x * frame.shape[1])
+                        y = int(lm.y * frame.shape[0])
+                        cv2.circle(annotated_frame, (x, y), 5, (0, 255, 0), -1)
 
-        # Assemble into canonical (126,) feature vector
         feature_vector = assemble_feature_vector(left_hand, right_hand)
-
         info = {
             "left_detected": left_detected,
             "right_detected": right_detected,
             "hands_count": hands_count,
         }
-
         return feature_vector, info, annotated_frame
 
     def close(self) -> None:
-        """Release MediaPipe resources."""
-        if hasattr(self, "hands") and self.hands:
-            self.hands.close()
+        if self.detector:
+            self.detector.close()
 
     def __enter__(self):
-        """Context manager support."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager cleanup."""
         self.close()
