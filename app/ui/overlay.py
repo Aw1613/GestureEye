@@ -11,19 +11,22 @@ import cv2
 import numpy as np
 
 
-# Palette (BGR format for OpenCV)
-COLOR_BG = (28, 22, 18)           # Dark slate background
-COLOR_PANEL = (42, 34, 28)        # Card / panel background
-COLOR_BORDER = (65, 52, 44)       # Subtle card border
-COLOR_HEADER = (20, 16, 12)       # Header banner background
-COLOR_TEXT = (245, 245, 245)      # Primary crisp text
-COLOR_MUTED = (160, 160, 160)     # Secondary / guide text
-COLOR_SUCCESS = (90, 210, 110)    # Green (Operational / High Confidence)
-COLOR_WARNING = (30, 180, 255)    # Amber/Orange (Moderate Confidence / Mock)
-COLOR_DANGER = (70, 70, 240)      # Red (Offline / Error)
-COLOR_ACCENT = (255, 185, 30)     # Vibrant Cyan / Blue accent
-COLOR_SPEECH = (230, 130, 255)    # Violet / Magenta (TTS Active)
-COLOR_CHIP_BG = (60, 48, 38)      # Word chip background
+# Palette (BGR format for OpenCV) - Vesper black-and-silver theme
+COLOR_BG = (0, 0, 0)                  # Pure black canvas background (#000000)
+COLOR_PANEL = (18, 14, 12)            # Dark obsidian surface (#0C0C10)
+COLOR_BORDER = (55, 48, 44)           # Metallic hairline border (rgba(255,255,255,0.12))
+COLOR_BORDER_HIGHLIGHT = (110, 100, 96) # Polished silver border highlight
+COLOR_HEADER = (8, 6, 6)              # Header banner background (#060608)
+COLOR_TEXT = (255, 255, 255)          # Primary crisp white text (#FFFFFF)
+COLOR_MUTED = (155, 145, 142)         # Secondary silver-muted text (#8E8E98)
+COLOR_SILVER_LIGHT = (248, 244, 244)  # Silver-white highlight (#F4F4F8)
+COLOR_SILVER_MID = (180, 170, 168)    # Polished liquid-metal silver (#A0A0AD)
+COLOR_SUCCESS = (155, 245, 0)         # Vesper Emerald accent (#00F59B)
+COLOR_WARNING = (35, 180, 255)        # Amber warning / mock indicator
+COLOR_DANGER = (75, 75, 245)          # Crimson error / offline alert
+COLOR_ACCENT = (245, 240, 235)        # Bright silver liquid-metal highlight
+COLOR_SPEECH = (245, 190, 180)        # Lavender-silver TTS active indicator
+COLOR_CHIP_BG = (26, 20, 19)          # Sleek dark metallic word chip background
 
 
 class UIOverlayRenderer:
@@ -114,7 +117,7 @@ class UIOverlayRenderer:
             (20, 32),
             cv2.FONT_HERSHEY_DUPLEX,
             0.85,
-            COLOR_ACCENT,
+            COLOR_TEXT,
             2,
             cv2.LINE_AA,
         )
@@ -137,7 +140,7 @@ class UIOverlayRenderer:
             (self.canvas_width - 450, 31),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.48,
-            COLOR_TEXT,
+            COLOR_SILVER_MID,
             1,
             cv2.LINE_AA,
         )
@@ -182,7 +185,7 @@ class UIOverlayRenderer:
                 canvas,
                 (self.camera_x, self.camera_y),
                 (self.camera_x + self.camera_w, self.camera_y + self.camera_h),
-                (18, 14, 10),
+                COLOR_PANEL,
                 -1,
             )
             cv2.putText(
@@ -198,13 +201,20 @@ class UIOverlayRenderer:
 
         # Mode tag watermark
         mode_str = "MODE: MOCK SIMULATION" if is_mock else "MODE: LIVE CAMERA"
-        tag_color = COLOR_WARNING if is_mock else COLOR_ACCENT
+        tag_color = COLOR_WARNING if is_mock else COLOR_SILVER_LIGHT
         cv2.rectangle(
             canvas,
             (self.camera_x + 10, self.camera_y + 10),
             (self.camera_x + 210, self.camera_y + 35),
-            (0, 0, 0),
+            (12, 10, 10),
             -1,
+        )
+        cv2.rectangle(
+            canvas,
+            (self.camera_x + 10, self.camera_y + 10),
+            (self.camera_x + 210, self.camera_y + 35),
+            COLOR_BORDER,
+            1,
         )
         cv2.putText(
             canvas,
@@ -290,7 +300,7 @@ class UIOverlayRenderer:
         )
 
         stab_ratio = min(1.0, max(0.0, stability_count / max(1, stability_target)))
-        stab_color = COLOR_SUCCESS if stability_count >= stability_target else COLOR_ACCENT
+        stab_color = COLOR_SUCCESS if stability_count >= stability_target else COLOR_SILVER_LIGHT
         self._draw_progress_bar(canvas, bar_x, py + 174, bar_w, 10, stab_ratio, stab_color)
 
         # Divider Line
@@ -333,6 +343,13 @@ class UIOverlayRenderer:
                     (px + pw - 16, chip_y + 22),
                     COLOR_CHIP_BG,
                     -1,
+                )
+                cv2.rectangle(
+                    canvas,
+                    (px + 16, chip_y),
+                    (px + pw - 16, chip_y + 22),
+                    COLOR_BORDER,
+                    1,
                 )
                 cv2.putText(
                     canvas,
@@ -377,7 +394,7 @@ class UIOverlayRenderer:
                 (bx + 520, by + 26),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.46,
-                COLOR_ACCENT,
+                COLOR_SILVER_LIGHT,
                 1,
                 cv2.LINE_AA,
             )
@@ -431,7 +448,7 @@ class UIOverlayRenderer:
             (bx + 20, by + 118),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.44,
-            COLOR_ACCENT,
+            COLOR_SILVER_MID,
             1,
             cv2.LINE_AA,
         )
@@ -449,7 +466,7 @@ class UIOverlayRenderer:
         """Draw a sleek, filled progress bar with background channel."""
         ratio = max(0.0, min(1.0, ratio))
         # Background
-        cv2.rectangle(canvas, (x, y), (x + w, y + h), (18, 14, 10), -1)
+        cv2.rectangle(canvas, (x, y), (x + w, y + h), (10, 8, 8), -1)
         cv2.rectangle(canvas, (x, y), (x + w, y + h), COLOR_BORDER, 1)
         # Filled portion
         fill_w = int(w * ratio)
@@ -466,15 +483,23 @@ class UIOverlayRenderer:
         label: str,
         color: Tuple[int, int, int],
     ) -> None:
-        """Draw a status indicator pill badge."""
-        cv2.rectangle(canvas, (x, y), (x + w, y + h), color, -1)
+        """Draw a sleek, dark liquid-metal status indicator pill badge."""
+        # Dark metallic pill body
+        cv2.rectangle(canvas, (x, y), (x + w, y + h), (20, 16, 14), -1)
+        # Metallic hairline border
+        cv2.rectangle(canvas, (x, y), (x + w, y + h), COLOR_BORDER, 1)
+        # Status indicator pip / dot
+        dot_x = x + 10
+        dot_y = y + h // 2
+        cv2.circle(canvas, (dot_x, dot_y), 3, color, -1)
+        # Crisp white text
         cv2.putText(
             canvas,
             label,
-            (x + 8, y + h - 7),
+            (x + 18, y + h - 7),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.36,
-            (15, 15, 15),
+            COLOR_TEXT,
             1,
             cv2.LINE_AA,
         )
