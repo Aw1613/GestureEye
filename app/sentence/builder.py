@@ -211,6 +211,10 @@ class SentenceBuilder:
         """Get the current smoothed sentence string."""
         return self.smooth_sentence()
 
+    def get_current_sentence(self) -> str:
+        """Alias for get_sentence."""
+        return self.get_sentence()
+
     def build_sentence(self) -> Dict[str, Any]:
         """
         Construct Contract E object:

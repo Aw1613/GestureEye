@@ -20,7 +20,8 @@ class PredictionFilter:
         self,
         confidence_threshold: float = 0.60,
         stability_window: int = 5,
-        pause_threshold_frames: int = 5
+        pause_threshold_frames: int = 5,
+        timing_gap: float = 0.0
     ):
         """
         Args:
@@ -28,9 +29,11 @@ class PredictionFilter:
             stability_window: Number of consecutive agreeing predictions required (default: 5).
             pause_threshold_frames: Number of idle/low-confidence frames to trigger a pause
                                    and clear the duplicate lock for repeated signs (default: 5).
+            timing_gap: Minimum time in seconds between fetching/accepting consecutive signs (default: 0.0).
         """
         self.confidence_threshold = confidence_threshold
         self.stability_window = stability_window
+        self.timing_gap = timing_gap
         self.segmenter = SignSegmenter(
             pause_threshold_frames=pause_threshold_frames,
             min_confidence=confidence_threshold
@@ -44,6 +47,7 @@ class PredictionFilter:
         self.candidate_end_time: Optional[float] = None
 
         self.last_accepted_word: Optional[str] = None
+        self.last_fetch_time: Optional[float] = None
         self.accepted_emitted: bool = False
 
     def process_prediction(self, prediction: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -103,6 +107,12 @@ class PredictionFilter:
         if self.consecutive_count >= self.stability_window:
             # Check duplicate suppression: don't re-emit if already accepted consecutively
             if not self.accepted_emitted and self.current_candidate != self.last_accepted_word:
+                # Check timing gap between two signs to fetch
+                if self.last_fetch_time is not None and self.timing_gap > 0.0:
+                    if (timestamp - self.last_fetch_time) < self.timing_gap:
+                        # Inside timing gap: do not enter fetch mode
+                        return None
+
                 # Calculate average confidence over stability window
                 avg_confidence = float(
                     sum(self.window_confidences[-self.stability_window:]) / self.stability_window
@@ -116,6 +126,7 @@ class PredictionFilter:
                 }
 
                 self.last_accepted_word = self.current_candidate
+                self.last_fetch_time = timestamp
                 self.accepted_emitted = True
                 return event
 
@@ -124,6 +135,13 @@ class PredictionFilter:
     def add_prediction(self, prediction: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Alias for process_prediction."""
         return self.process_prediction(prediction)
+
+    def is_in_fetch_mode(self, current_time: Optional[float] = None) -> bool:
+        """Check if the timing gap has elapsed since the last fetched sign."""
+        if self.last_fetch_time is None or self.timing_gap <= 0.0:
+            return True
+        now = time.time() if current_time is None else current_time
+        return (now - self.last_fetch_time) >= self.timing_gap
 
     def _reset_candidate(self):
         """Reset the current candidate window tracking."""
@@ -138,16 +156,25 @@ class PredictionFilter:
         """Full reset of filter state."""
         self._reset_candidate()
         self.last_accepted_word = None
+        self.last_fetch_time = None
         self.segmenter.reset()
 
     def get_status(self) -> Dict[str, Any]:
         """Return diagnostic status of the filter."""
+        in_gap = False
+        if self.last_fetch_time is not None and self.timing_gap > 0.0:
+            in_gap = (time.time() - self.last_fetch_time) < self.timing_gap
+
         return {
             "current_candidate": self.current_candidate,
             "consecutive_count": self.consecutive_count,
             "stability_window": self.stability_window,
             "confidence_threshold": self.confidence_threshold,
             "last_accepted_word": self.last_accepted_word,
+            "last_fetch_time": self.last_fetch_time,
+            "timing_gap": self.timing_gap,
+            "in_timing_gap": in_gap,
+            "fetch_mode": not in_gap,
             "accepted_emitted": self.accepted_emitted,
             "in_pause": self.segmenter.consecutive_idle_frames >= self.segmenter.pause_threshold_frames
         }

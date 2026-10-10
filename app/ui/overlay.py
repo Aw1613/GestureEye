@@ -242,7 +242,12 @@ class UIOverlayRenderer:
         cv2.rectangle(canvas, (px, py), (px + pw, py + ph), COLOR_BORDER, 1)
 
         # Section 1: Current Sign Recognition
+        is_fetch_mode = ui_state.get("is_fetch_mode", True)
         cv2.putText(canvas, "CURRENT SIGN", (px + 16, py + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.45, COLOR_MUTED, 1, cv2.LINE_AA)
+        
+        mode_tag = "[FETCH READY]" if is_fetch_mode else "[DISPLAY ONLY]"
+        mode_color = COLOR_SUCCESS if is_fetch_mode else COLOR_WARNING
+        cv2.putText(canvas, mode_tag, (px + 130, py + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.40, mode_color, 1, cv2.LINE_AA)
 
         current_sign = ui_state.get("current_sign")
         sign_text = str(current_sign).upper() if current_sign else "..."
@@ -288,9 +293,10 @@ class UIOverlayRenderer:
         self._draw_progress_bar(canvas, bar_x, bar_y, bar_w, bar_h, confidence, bar_color)
 
         # Section 3: Stability Lock Progress
+        gap_suffix = "" if is_fetch_mode else " (0.5s GAP)"
         cv2.putText(
             canvas,
-            f"STABILITY FILTER: {stability_count}/{stability_target} FRAMES",
+            f"STABILITY FILTER: {stability_count}/{stability_target} FRAMES{gap_suffix}",
             (px + 16, py + 165),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.42,

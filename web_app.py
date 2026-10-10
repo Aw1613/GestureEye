@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 import cv2
 import numpy as np
@@ -22,8 +23,11 @@ class SignBridgeProcessor(VideoProcessorBase):
         self.extractor = HandKeypointExtractor()
         self.seq_buffer = SequenceBuffer(sequence_length=30, feature_dim=FEATURE_DIM)
         self.inference = ModelInference()
-        self.pred_filter = PredictionFilter(stability_window=15)
+        self.pred_filter = PredictionFilter(stability_window=15, timing_gap=0.5)
         self.builder = SentenceBuilder()
+        self.last_fetch_time = None
+        self.last_fetched_sign = None
+        self.fetch_gap = 0.5
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
         # Convert web frame to OpenCV format
@@ -41,12 +45,26 @@ class SignBridgeProcessor(VideoProcessorBase):
             # 3. AI Prediction
             seq = self.seq_buffer.get_sequence()
             pred = self.inference.predict(seq)
-            current_pred = f"{pred['label']} ({pred['confidence']*100:.1f}%)"
-            
-            # 4. Temporal Filter
-            stable_event = self.pred_filter.process_prediction(pred)
-            if stable_event:
-                self.builder.add_word(stable_event["word"])
+            pred_label = pred["label"]
+            pred_conf = pred["confidence"]
+            now = time.time()
+
+            # Check timing gap
+            time_since_fetch = (now - self.last_fetch_time) if self.last_fetch_time else float("inf")
+            in_gap = time_since_fetch < self.fetch_gap
+
+            if in_gap:
+                mode_tag = "[DISPLAY ONLY]" if pred_label != self.last_fetched_sign else "[COOLDOWN]"
+                current_pred = f"{pred_label} ({pred_conf*100:.1f}%) {mode_tag}"
+                self.pred_filter.process_prediction(pred)
+            else:
+                current_pred = f"{pred_label} ({pred_conf*100:.1f}%)"
+                # 4. Temporal Filter
+                stable_event = self.pred_filter.process_prediction(pred)
+                if stable_event:
+                    self.last_fetch_time = now
+                    self.last_fetched_sign = stable_event["word"]
+                    self.builder.add_word(stable_event["word"])
 
         # 5. Draw UI on the web frame
         sentence = self.builder.get_current_sentence()

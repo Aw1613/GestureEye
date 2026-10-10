@@ -47,6 +47,7 @@ class SignBridgeApp:
         tts_rate: int = 120,
         headless: bool = False,
         target_fps: int = 30,
+        fetch_gap: float = 0.5,
     ):
         """Initialize all pipeline subsystems.
 
@@ -60,6 +61,7 @@ class SignBridgeApp:
             tts_rate: Speech rate in words per minute.
             headless: If True, disables cv2.imshow for CI / automated tests.
             target_fps: Target frame rate for smooth UI pacing (default 30).
+            fetch_gap: Appropriate timing gap in seconds between two signs to fetch (default 0.5).
         """
         self.mock_camera = mock_camera
         self.model_path = model_path
@@ -68,6 +70,7 @@ class SignBridgeApp:
         self.stability_window = stability_window
         self.headless = headless
         self.target_fps = target_fps
+        self.fetch_gap = fetch_gap
 
         # Subsystems
         self.camera: Optional[CameraCapture] = None
@@ -83,6 +86,7 @@ class SignBridgeApp:
         self.pred_filter = PredictionFilter(
             confidence_threshold=confidence_threshold,
             stability_window=stability_window,
+            timing_gap=fetch_gap,
         )
         self.sentence_builder = SentenceBuilder()
         self.tts = TextToSpeech(rate=tts_rate, enabled=tts_enabled)
@@ -92,6 +96,9 @@ class SignBridgeApp:
         self.is_running = False
         self.current_sign: Optional[str] = None
         self.current_confidence: float = 0.0
+        self.last_fetch_time: Optional[float] = None
+        self.last_fetched_sign: Optional[str] = None
+        self.is_fetch_mode: bool = True
         self.toast_message: Optional[str] = None
         self.toast_expires_at: float = 0.0
         self.error_message: Optional[str] = None
@@ -150,33 +157,60 @@ class SignBridgeApp:
             "confidence": round(float(self.current_confidence), 4),
             "recognized_words": self.sentence_builder.get_words(),
             "sentence": self.sentence_builder.get_sentence(),
+            "is_fetch_mode": self.is_fetch_mode,
             "status": {
                 "camera": camera_ok,
                 "model": True,
                 "speech": self.tts.is_available(),
+                "fetch_mode": self.is_fetch_mode,
             },
         }
 
-    def inject_prediction(self, label: str, confidence: float = 0.90) -> Optional[Dict[str, Any]]:
+    def inject_prediction(
+        self,
+        label: str,
+        confidence: float = 0.90,
+        timestamp: Optional[float] = None
+    ) -> Optional[Dict[str, Any]]:
         """Simulate an inference prediction for demo or automated testing.
 
         Args:
             label: Sign vocabulary label string.
             confidence: Prediction confidence score in [0.0, 1.0].
+            timestamp: Optional explicit Unix timestamp.
 
         Returns:
             Contract D event if stabilized, otherwise None.
         """
+        now = timestamp if timestamp is not None else time.time()
+        # For programmatic simulation/tests without explicit timestamps,
+        # advance simulated time beyond the timing gap when switching to a different sign
+        if timestamp is None and self.last_fetch_time is not None:
+            if label != self.last_fetched_sign:
+                gap_target = self.last_fetch_time + self.fetch_gap + 0.05
+                if now < gap_target:
+                    now = gap_target
+
         pred = {
             "label": label,
             "confidence": confidence,
-            "timestamp": time.time(),
+            "timestamp": now,
         }
         self.current_sign = label
         self.current_confidence = confidence
 
+        # Check timing gap
+        time_since_fetch = (now - self.last_fetch_time) if self.last_fetch_time is not None else float("inf")
+        if time_since_fetch < self.fetch_gap:
+            self.is_fetch_mode = False
+            self.pred_filter.process_prediction(pred)
+            return None
+
+        self.is_fetch_mode = True
         stable_event = self.pred_filter.process_prediction(pred)
         if stable_event:
+            self.last_fetch_time = now
+            self.last_fetched_sign = stable_event["word"]
             self.sentence_builder.add_word(stable_event)
             self.set_toast(f"Accepted: {stable_event['word']}")
         return stable_event
@@ -217,14 +251,34 @@ class SignBridgeApp:
             try:
                 seq = self.seq_buffer.get_sequence() # Shape: (30, 126)
                 prediction = self.model.predict(seq) # Contract C
-                self.current_sign = prediction["label"]
-                self.current_confidence = prediction["confidence"]
+                pred_label = prediction["label"]
+                pred_conf = prediction["confidence"]
 
-                # Stage 3: Temporal Stability & Sentence Builder (Agent 3)
-                stable_event = self.pred_filter.process_prediction(prediction) # Contract D
-                if stable_event:
-                    self.sentence_builder.add_word(stable_event) # Contract E
-                    self.set_toast(f"Recognized: {stable_event['word']}")
+                # Always update the displayed sign and confidence on the UI
+                self.current_sign = pred_label
+                self.current_confidence = pred_conf
+
+                # Check timing gap between two signs to fetch
+                time_since_fetch = (now - self.last_fetch_time) if self.last_fetch_time is not None else float("inf")
+                in_gap = time_since_fetch < self.fetch_gap
+
+                if in_gap:
+                    # Timing gap active:
+                    # 1. If same sign as last fetched: do not enter fetch mode
+                    # 2. If different sign: display it only and nothing else!
+                    self.is_fetch_mode = False
+                    # Still feed prediction into filter so it tracks consecutive frames
+                    self.pred_filter.process_prediction(prediction)
+                else:
+                    # Timing gap elapsed: fetch mode is active
+                    self.is_fetch_mode = True
+                    # Stage 3: Temporal Stability & Sentence Builder (Agent 3)
+                    stable_event = self.pred_filter.process_prediction(prediction) # Contract D
+                    if stable_event:
+                        self.last_fetch_time = now
+                        self.last_fetched_sign = stable_event["word"]
+                        self.sentence_builder.add_word(stable_event) # Contract E
+                        self.set_toast(f"Recognized: {stable_event['word']}")
             except Exception as e:
                 self.error_message = f"Inference Error: {e}"
 
@@ -331,6 +385,9 @@ class SignBridgeApp:
         self.seq_buffer.reset()
         self.current_sign = None
         self.current_confidence = 0.0
+        self.last_fetch_time = None
+        self.last_fetched_sign = None
+        self.is_fetch_mode = True
         self.toast_message = None
         self.error_message = None
 

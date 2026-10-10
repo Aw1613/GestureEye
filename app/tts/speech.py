@@ -103,12 +103,14 @@ class TextToSpeech:
             if text:
                 self._is_speaking = True
                 self.spoken_history.append(text)
-
                 if self.enabled and self._is_available:
                     try:
-                        import pythoncom
+                        try:
+                            import pythoncom
+                            pythoncom.CoInitialize()
+                        except ImportError:
+                            pass
                         import pyttsx3
-                        pythoncom.CoInitialize()
                         # Re-initialize engine per utterance to prevent Windows COM locking
                         temp_engine = pyttsx3.init()
                         temp_engine.setProperty("rate", self.rate)
